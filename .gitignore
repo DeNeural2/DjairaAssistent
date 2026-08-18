@@ -140,3 +140,4 @@ models/
 tools/
 last-recording.wav
 .tts-play.ps1
+.screenshot.ps1

@@ -19,6 +19,9 @@ import { logWake, logExchange, logSleep } from "./conversation-log.js";
 import { pauseMedia, resumeMedia } from "./media-key.js";
 import { CITY_GRAMMAR, findCity } from "./cities.js";
 import { listenForHotkey } from "./hotkey.js";
+import { buildTimeReply } from "./clock.js";
+import { takeScreenshot, buildScreenshotReply } from "./screenshot.js";
+import { turnScreenOff } from "./display.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -287,12 +290,22 @@ async function main() {
 
       let reply;
       let pendingLaunchCheck = null;
-      if (parsed.action === "start_work") {
+      let screenOffAfterReply = false;
+      if (parsed.action === "screenshot") {
+        reply = buildScreenshotReply(await takeScreenshot());
+      } else if (parsed.action === "screen_off") {
+        // Blanking is deferred until after she has spoken, so the confirmation
+        // isn't delivered to an already-dark screen.
+        reply = "Выключаю экран.";
+        screenOffAfterReply = true;
+      } else if (parsed.action === "start_work") {
         const result = await runPreset("start_work");
         reply = buildPresetReply(result);
         // Checked in the background: it needs several seconds for windows to
         // appear, and the spoken reply shouldn't wait on that.
         pendingLaunchCheck = verifyLaunched(result.apps ?? []);
+      } else if (parsed.action === "get_time") {
+        reply = buildTimeReply();
       } else if (parsed.action === "get_weather") {
         // Prefer a configured city found in what was actually said over the LLM's
         // reading of it: on "скажи погоду бая маре" the model answered "Байкал",
@@ -305,6 +318,15 @@ async function main() {
       console.log(`Ответ: ${reply}`);
       logExchange({ heard: text, sttMs: sttMs.toFixed(0), understood: parsed, llmMs: llmMs.toFixed(0), said: reply });
       await speak(reply);
+
+      if (screenOffAfterReply) {
+        turnScreenOff();
+        // Ends the dialog rather than asking "что-нибудь ещё?": turning the screen
+        // off means walking away, and any answer would land on a dark screen with
+        // nobody there. Moving the mouse brings the display back — that's Windows.
+        logSleep();
+        return;
+      }
 
       if (pendingLaunchCheck) {
         const missing = await pendingLaunchCheck;
