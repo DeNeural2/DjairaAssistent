@@ -1,0 +1,10 @@
+{
+  "start_work": {
+    "message_to_say": "Запускаю Вижуалку Гит и Телеграм",
+    "apps": [
+      "C:\\Users\\Cailo\\AppData\\Roaming\\Telegram Desktop\\Telegram.exe",
+      "C:\\Users\\Cailo\\AppData\\Local\\GitHubDesktop\\GitHubDesktop.exe",
+      "C:\\Users\\Cailo\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"
+    ]
+  }
+}

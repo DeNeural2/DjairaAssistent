@@ -134,3 +134,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Local models (large binaries, downloaded via scripts, not committed)
+models/
+tools/
+last-recording.wav
+.tts-play.ps1
